@@ -1,0 +1,9 @@
+services:
+  mcp-server-postgres:
+    container_name: mcp-server-postgres
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8056:8056"
+    restart: unless-stopped
