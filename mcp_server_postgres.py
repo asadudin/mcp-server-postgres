@@ -51,7 +51,7 @@ def ensure_json_string(params: Union[str, list, dict, None]) -> Optional[str]:
     return json.dumps(params)
 
 @server.tool()
-async def sql_query(query: str, params: Optional[Union[str, list, dict]] = None) -> str:
+async def sql_query(query: str, params: Optional[str] = None) -> str:
     """
     Run an arbitrary SQL query and return the results as JSON.
     Args:
@@ -63,8 +63,8 @@ async def sql_query(query: str, params: Optional[Union[str, list, dict]] = None)
     try:
         p = await get_pool()
         async with p.acquire() as conn:
-            params_str = ensure_json_string(params)
-            args = json.loads(params_str) if params_str else None
+            # params must be a JSON string (or None)
+            args = json.loads(params) if params else None
             records = await conn.fetch(query, *(args or []))
             result = [dict(r) for r in records]
             return json.dumps(result, indent=2)
@@ -72,7 +72,7 @@ async def sql_query(query: str, params: Optional[Union[str, list, dict]] = None)
         return json.dumps({"error": str(e)})
 
 @server.tool()
-async def sql_execute(query: str, params: Optional[Union[str, list, dict]] = None) -> str:
+async def sql_execute(query: str, params: Optional[str] = None) -> str:
     """
     Execute an INSERT/UPDATE/DELETE SQL statement.
     Args:
@@ -84,8 +84,8 @@ async def sql_execute(query: str, params: Optional[Union[str, list, dict]] = Non
     try:
         p = await get_pool()
         async with p.acquire() as conn:
-            params_str = ensure_json_string(params)
-            args = json.loads(params_str) if params_str else None
+            # params must be a JSON string (or None)
+            args = json.loads(params) if params else None
             result = await conn.execute(query, *(args or []))
             return json.dumps({"result": result})
     except Exception as e:
